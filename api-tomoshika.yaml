@@ -1,0 +1,203 @@
+openapi: 3.0.2
+info:
+  title: ともしか's Game
+  description: |-
+    <b>ともしか's Game API仕様</b>
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/
+tags:
+  - name: user
+    description: ユーザ関連API
+  - name: game
+    description: ゲーム関連API
+  - name: ranking
+    description: ランキング関連API
+paths:
+  /user/signin:
+    post:
+      tags:
+        - user
+      summary: サインインAPI
+      description: |
+        ユーザを作成します。<br>
+        ユーザの名前とパスワードをリクエストで受け取り、認証用のトークンを生成しデータベースへ保存します。<br>
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSigninRequest"
+        required: true
+      responses:
+        200:
+          description: A successful response.
+  /user/login:
+    post:
+      tags:
+        - user
+      summary: ログインAPI
+      description: |
+        ログインします。<br>
+        サインインで登録してある、ユーザの名前とパスワードをリクエストで受け取り、<br>
+        紐付いている 名前、トークン、コインを取得します。
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLoginRequest"
+        required: true
+      responses:
+        200:
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserLoginResponse"
+      x-codegen-request-body-name: body
+  /game/finish:
+    post:
+      tags:
+        - game
+      summary: ゲーム終了API
+      description: |
+        スコアを送信してゲームを終了し、ランキングへのスコアの登録と報酬の受け取りを行います。<br>
+        また、ランキング情報を取得する。<br>
+      parameters:
+        - name: x-token
+          in: header
+          description: 認証トークン
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameFinishRequest"
+        required: true
+      responses:
+        200:
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameFinishResponse"
+      x-codegen-request-body-name: body
+  /ranking/list:
+    post:
+      tags:
+        - ranking
+      summary: ランキング情報取得API
+      description: |
+        上位ランキング情報を取得します。<br>
+      parameters:
+        - name: x-token
+          in: header
+          description: 認証トークン
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Request Body
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RankingListRequest"
+      responses:
+        200:
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RankingListResponse"
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    UserSigninRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザ名
+        password:
+          type: string
+          description: パスワード
+    UserLoginRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザ名
+        password:
+          type: string
+          description: パスワード
+
+    UserLoginResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザ名
+        token:
+          type: string
+          description: トークン
+        coin:
+          type: integer
+          description: 所持コイン
+
+    GameFinishRequest:
+      type: object
+      properties:
+        score:
+          type: integer
+          description: スコア
+        stageId:
+          type: integer
+          description: :ステージ番号
+    GameFinishResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザ名
+        score:
+          type: integer
+          description: スコア
+        ranks:
+          type: array
+          items:
+            $ref: '#/components/schemas/RankInfo'
+          description: 各順位情報
+
+    RankingListRequest:
+      type: object
+      properties:
+        stageId:
+          type: integer
+          description: :ステージ番号
+    RankingListResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザ名
+        score:
+          type: integer
+          description: スコア
+        ranks:
+          type: array
+          items:
+            $ref: '#/components/schemas/RankInfo'
+          description: 各順位情報
+    RankInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザ名
+        score:
+          type: integer
+          description: スコア
